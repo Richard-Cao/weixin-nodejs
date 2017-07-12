@@ -10,6 +10,7 @@ var config = {
 var WechatAPI = require('wechat-api');
 var api = new WechatAPI('wxc351179593135936',
   '6c1980fb164b1048d2083d1d855cb3d5');
+var request = require('request');
 
 router.use('/', wechat(config).text(function(message, req, res, next) {
   // message为文本内容
@@ -154,7 +155,7 @@ router.use('/', wechat(config).text(function(message, req, res, next) {
 
 // 请求接口
 var requestMessage = function(msg, res) {
-	request.get("http://gank.io/api/random/data/" + msg.xml.Content + "/20", function(error, response, body) {
+	request.get("http://gank.io/api/random/data/" + msg.Content + "/20", function(error, response, body) {
 		if (!error && response.statusCode == 200) {
 			var info = JSON.parse(body);
 			if (info.results.length != 0) {
