@@ -18,37 +18,7 @@ router.use('/', wechat(config).text(function(message, req, res, next) {
   // CreateTime: '1359125035',
   // MsgType: 'text',
   // Content: 'http',
-  // MsgId: '5837397576500011341' }
-
-  // var keyArray = ['你好', '约吗'];
-  // var content = message.Content;
-  // var keyIndex = keyArray.indexOf(content);
-  // switch (keyIndex) {
-  //   case 0:
-  //     {
-  //       res.reply({
-  //         type: "text",
-  //         content: '您好，大家好才是真的好！'
-  //       });
-
-  //     }
-  //     break;
-  //   case 1:
-  //     {
-  //       res.reply({
-  //         type: "text",
-  //         content: '不约，不约，叔叔我们不约！'
-  //       });
-
-  //     }
-  //     break;
-  //   default:
-  //     res.reply({
-  //       type: "text",
-  //       content: '服务器挂掉了，你的要求暂时无法满足……'
-  //     });
-  //     break;
-  // }
+  // MsgId: '5837397576500011341'
   requestMessage(message, res);
 }).image(function(message, req, res, next) {
   // message为图片内容
@@ -155,28 +125,12 @@ router.use('/', wechat(config).text(function(message, req, res, next) {
 
 // 请求接口
 var requestMessage = function(msg, res) {
+  console.log(msg.Content);
 	request.get("http://gank.io/api/random/data/" + msg.Content + "/20", function(error, response, body) {
 		if (!error && response.statusCode == 200) {
 			var info = JSON.parse(body);
 			if (info.results.length != 0) {
 				var num = parseInt(Math.random() * info.results.length);
-				// var result = {
-				// 	xml: {
-				// 		ToUserName: msg.xml.FromUserName[0],
-				// 		FromUserName: '' + msg.xml.ToUserName + '',
-				// 		CreateTime: new Date().getTime(),
-				// 		MsgType: 'news',
-				// 		ArticleCount: 1,
-				// 		Articles: {
-				// 			item: {
-				// 				Title: info.results[num].desc,
-				// 				Description: "作者：" + info.results[num].who,
-				// 				Url: info.results[num].url
-				// 			}
-				// 		}
-				// 	}
-				// };
-        // cb(null, result);
         res.reply([
           {
             title: info.results[num].desc,
@@ -197,39 +151,12 @@ var requestRobot = function(msg, res) {
 			var info = JSON.parse(body);
 			switch (info.code) {
 				case 100000:
-					// var result = {
-					// 	xml: {
-					// 		ToUserName: msg.xml.FromUserName[0],
-					// 		FromUserName: '' + msg.xml.ToUserName + '',
-					// 		CreateTime: new Date().getTime(),
-					// 		MsgType: 'text',
-					// 		Content: info.text
-					// 	}
-					// };
-          // cb(null, result);
           res.reply({
             type: "text",
             content: info.text
           });
 					break;
 				case 200000:
-					// var result = {
-					// 	xml: {
-					// 		ToUserName: msg.xml.FromUserName[0],
-					// 		FromUserName: '' + msg.xml.ToUserName + '',
-					// 		CreateTime: new Date().getTime(),
-					// 		MsgType: 'news',
-					// 		ArticleCount: 1,
-					// 		Articles: {
-					// 			item: {
-					// 				Title: info.text,
-					// 				Description: "具体内容点击链接查看",
-					// 				Url: info.url
-					// 			}
-					// 		}
-					// 	}
-					// };
-          // cb(null, result);
           res.reply([
             {
               title: info.text,
@@ -240,24 +167,6 @@ var requestRobot = function(msg, res) {
 					break;
 				case 302000:
 					var num = parseInt(Math.random() * info.list.length);
-					// var result = {
-					// 	xml: {
-					// 		ToUserName: msg.xml.FromUserName[0],
-					// 		FromUserName: '' + msg.xml.ToUserName + '',
-					// 		CreateTime: new Date().getTime(),
-					// 		MsgType: 'news',
-					// 		ArticleCount: 1,
-					// 		Articles: {
-					// 			item: {
-					// 				Title: info.list[num].source,
-					// 				Description: info.list[num].article,
-					// 				PicUrl: info.list[num].icon,
-					// 				Url: info.list[num].detailurl
-					// 			}
-					// 		}
-					// 	}
-					// };
-          // cb(null, result);
           res.reply([
             {
               title: info.list[num].source,
@@ -268,24 +177,6 @@ var requestRobot = function(msg, res) {
           ]);
 					break;
 				case 308000:
-					// var result = {
-					// 	xml: {
-					// 		ToUserName: msg.xml.FromUserName[0],
-					// 		FromUserName: '' + msg.xml.ToUserName + '',
-					// 		CreateTime: new Date().getTime(),
-					// 		MsgType: 'news',
-					// 		ArticleCount: 1,
-					// 		Articles: {
-					// 			item: {
-					// 				Title: info.list[0].name,
-					// 				Description: info.list[0].info,
-					// 				PicUrl: info.list[0].icon,
-					// 				Url: info.list[0].detailurl
-					// 			}
-					// 		}
-					// 	}
-					// };
-          // cb(null, result);
           res.reply([
             {
               title: info.list[0].name,
@@ -296,16 +187,6 @@ var requestRobot = function(msg, res) {
           ]);
 					break;
 				default:
-					// var result = {
-					// 	xml: {
-					// 		ToUserName: msg.xml.FromUserName[0],
-					// 		FromUserName: '' + msg.xml.ToUserName + '',
-					// 		CreateTime: new Date().getTime(),
-					// 		MsgType: 'text',
-					// 		Content: '也许后台功能太弱无法自动满足该需求。。。'
-					// 	}
-					// };
-          // cb(null, result);
           res.reply({
             type: "text",
             content: '也许后台功能太弱无法自动满足该需求。。。'
