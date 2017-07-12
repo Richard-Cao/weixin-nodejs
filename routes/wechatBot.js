@@ -12,6 +12,8 @@ var api = new WechatAPI('wxc351179593135936',
   '6c1980fb164b1048d2083d1d855cb3d5');
 var request = require('request');
 
+var gankKeywords = ["福利", "Android", "iOS", "休息视频", "拓展资源", "前端", "瞎推荐", "App", "all"];
+
 router.use('/', wechat(config).text(function(message, req, res, next) {
   // message为文本内容
   // FromUserName: 'oPKu7jgOibOA-De4u8J2RuNKpZRw',
@@ -19,7 +21,13 @@ router.use('/', wechat(config).text(function(message, req, res, next) {
   // MsgType: 'text',
   // Content: 'http',
   // MsgId: '5837397576500011341'
-  requestMessage(message, res);
+  var gankKeywordIndex = getGankKeywordIndex(message.Content);
+  if (gankKeywordIndex != -1){
+    message.Content = gankKeywords[gankKeywordIndex];
+    requestGank(message, res)
+  } else {
+    requestRobot(message, res);
+  }
 }).image(function(message, req, res, next) {
   // message为图片内容
   // { ToUserName: 'gh_d3e07d51b513',
@@ -121,16 +129,24 @@ router.use('/', wechat(config).text(function(message, req, res, next) {
   // MsgId: '5837397520665436492',
   // OpenID: 'oPKu7jgOibOA-De4u8J2RuNKpZRw' }
   // TODO
+  if (message.Event === 'subscribe_status') {
+      res.reply({
+        type: "text",
+        content: "感谢关注公众号，我会不定期推送一些优质文章给您，之前的推送请查看历史消息。回复Android，iOS，前端即可获得随机文章，其他小功能需要自行发现哦。"
+      });
+  }
 }).middlewarify());
 
 // 请求接口
-var requestMessage = function(msg, res) {
-  console.log(msg.Content);
-	request.get("http://gank.io/api/random/data/" + msg.Content + "/20", function(error, response, body) {
+var requestGank = function(msg, res) {
+	request.get({
+    url: "http://gank.io/api/random/data/" + encodeURIComponent(msg.Content) + "/10",
+    header : {'Content-Type': 'application/json; charset=UTF-8'}
+  }, function(error, response, body) {
 		if (!error && response.statusCode == 200) {
-			var info = JSON.parse(body);
+      var info = JSON.parse(body);
 			if (info.results.length != 0) {
-				var num = parseInt(Math.random() * info.results.length);
+        var num = parseInt(Math.random() * (info.results.length - 1));
         res.reply([
           {
             title: info.results[num].desc,
@@ -138,15 +154,20 @@ var requestMessage = function(msg, res) {
             url: info.results[num].url
           }
         ]);
-			} else {
-				requestRobot(msg, res);
 			}
 		}
 	});
 };
 
 var requestRobot = function(msg, res) {
-	request.post("http://www.tuling123.com/openapi/api?key=374079dc2dffad6716b309fd2dd0e6ed&info=" + msg.Content + "&userid=" + msg.FromUserName, function(error, response, body) {
+	request.post({
+    url: "http://www.tuling123.com/openapi/api",
+    form: {
+      key: '374079dc2dffad6716b309fd2dd0e6ed',
+      info: msg.Content,
+      userid: msg.FromUserName
+    }
+  }, function(error, response, body) {
 		if (!error && response.statusCode == 200) {
 			var info = JSON.parse(body);
 			switch (info.code) {
@@ -166,7 +187,7 @@ var requestRobot = function(msg, res) {
           ]);
 					break;
 				case 302000:
-					var num = parseInt(Math.random() * info.list.length);
+					var num = parseInt(Math.random() * (info.list.length - 1));
           res.reply([
             {
               title: info.list[num].source,
@@ -197,30 +218,13 @@ var requestRobot = function(msg, res) {
 	});
 };
 
-var getNum = function(list) {
-  var num;
-  if (list.length < 10) {
-    num = list.length;
-  } else {
-    num = 10;
+var getGankKeywordIndex = function(keyword) {
+  for (var i = 0; i < gankKeywords.length; i++) {
+    if (keyword.toLowerCase() === gankKeywords[i].toLowerCase()){
+      return i;
+    }
   }
-  return num;
-};
-
-var getArticles = function(list) {
-  var num = getNum(list);
-  var resList = new Array();
-  for (var i = 0; i < num; i++) {
-    var result = {
-      item: {
-        Title: list[i].source,
-        Description: list[i].article,
-        Url: list[i].detailurl
-      }
-    };
-    resList.push(result);
-  }
-  return items;
+  return -1;
 };
 
 module.exports = router;
