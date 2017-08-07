@@ -101,6 +101,12 @@ router.use('/', wechat(config).text(function(message, req, res, next) {
   // Precision: '119.385040',
   // MsgId: '5837397520665436492' }
   // TODO
+  if (message.Event === 'subscribe') {
+      res.reply({
+        type: "text",
+        content: "感谢关注公众号，我会不定期推送一些优质文章给您，之前的推送请查看历史消息。回复Android，iOS，前端即可获得随机文章，其他小功能需要自行发现哦。"
+      });
+  }
 }).device_text(function(message, req, res, next) {
   // message为设备文本消息内容
   // { ToUserName: 'gh_d3e07d51b513',
@@ -129,12 +135,6 @@ router.use('/', wechat(config).text(function(message, req, res, next) {
   // MsgId: '5837397520665436492',
   // OpenID: 'oPKu7jgOibOA-De4u8J2RuNKpZRw' }
   // TODO
-  if (message.Event === 'subscribe_status') {
-      res.reply({
-        type: "text",
-        content: "感谢关注公众号，我会不定期推送一些优质文章给您，之前的推送请查看历史消息。回复Android，iOS，前端即可获得随机文章，其他小功能需要自行发现哦。"
-      });
-  }
 }).middlewarify());
 
 // 请求接口
@@ -171,12 +171,14 @@ var requestRobot = function(msg, res) {
 		if (!error && response.statusCode == 200) {
 			var info = JSON.parse(body);
 			switch (info.code) {
+        // 文本类
 				case 100000:
           res.reply({
             type: "text",
             content: info.text
           });
-					break;
+          break;
+        // 链接类
 				case 200000:
           res.reply([
             {
@@ -185,7 +187,8 @@ var requestRobot = function(msg, res) {
               url: info.url
             }
           ]);
-					break;
+          break;
+        // 新闻类
 				case 302000:
 					var num = parseInt(Math.random() * (info.list.length - 1));
           res.reply([
@@ -196,7 +199,8 @@ var requestRobot = function(msg, res) {
               url: info.list[num].detailurl
             }
           ]);
-					break;
+          break;
+        // 菜谱类
 				case 308000:
           res.reply([
             {
@@ -210,7 +214,7 @@ var requestRobot = function(msg, res) {
 				default:
           res.reply({
             type: "text",
-            content: '也许后台功能太弱无法自动满足该需求。。。'
+            content: '也许后台功能太弱无法满足需求。。。请加微信caolicheng921104聊聊'
           });
 					break;
 			}
