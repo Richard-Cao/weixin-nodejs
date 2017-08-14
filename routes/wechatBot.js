@@ -146,14 +146,7 @@ var requestGank = function(msg, res) {
 		if (!error && response.statusCode == 200) {
       var info = JSON.parse(body);
 			if (info.results.length != 0) {
-        var num = parseInt(Math.random() * (info.results.length - 1));
-        res.reply([
-          {
-            title: info.results[num].desc,
-            description: "作者：" + info.results[num].who,
-            url: info.results[num].url
-          }
-        ]);
+        res.reply(getGankNews(info.results));
 			}
 		}
 	});
@@ -169,7 +162,7 @@ var requestRobot = function(msg, res) {
     }
   }, function(error, response, body) {
 		if (!error && response.statusCode == 200) {
-			var info = JSON.parse(body);
+      var info = JSON.parse(body);
 			switch (info.code) {
         // 文本类
 				case 100000:
@@ -189,16 +182,8 @@ var requestRobot = function(msg, res) {
           ]);
           break;
         // 新闻类
-				case 302000:
-					var num = parseInt(Math.random() * (info.list.length - 1));
-          res.reply([
-            {
-              title: info.list[num].source,
-              description: info.list[num].article,
-              picurl: info.list[num].icon,
-              url: info.list[num].detailurl
-            }
-          ]);
+        case 302000:
+          res.reply(getRobotNews(info.list));
           break;
         // 菜谱类
 				case 308000:
@@ -222,6 +207,7 @@ var requestRobot = function(msg, res) {
 	});
 };
 
+// 处理gank.io关键字
 var getGankKeywordIndex = function(keyword) {
   for (var i = 0; i < gankKeywords.length; i++) {
     if (keyword.toLowerCase() === gankKeywords[i].toLowerCase()){
@@ -230,5 +216,43 @@ var getGankKeywordIndex = function(keyword) {
   }
   return -1;
 };
+
+// 处理新闻返回
+var getRobotNews = function(newsList) {
+  var news = new Array();
+  var length = newsList.length > 8 ? 8 : newsList.length;
+  for (var i = 0; i < length; i++) {
+    news.push({
+      title: newsList[i].source,
+      description: newsList[i].article,
+      picurl: newsList[i].icon,
+      url: newsList[i].detailurl
+    })
+  }
+  return news;
+}
+
+// 处理gank.io的图文返回
+var getGankNews = function(resultList) {
+  var results = new Array();
+  var length = resultList.length > 8 ? 8 : resultList.length;
+  for (var i = 0; i < length; i++) {
+    if (resultList[i].images && resultList[i].images[0]) {
+      results.unshift({
+        title: resultList[i].desc,
+        description: "作者：" + resultList[i].who,
+        picurl: resultList[i].images[0],
+        url: resultList[i].url
+      })
+    } else {
+      results.push({
+        title: resultList[i].desc,
+        description: "作者：" + resultList[i].who,
+        url: resultList[i].url
+      })
+    }
+  }
+  return results;
+}
 
 module.exports = router;

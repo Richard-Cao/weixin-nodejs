@@ -1,6 +1,6 @@
 {
-  "name": "node-js-getting-started",
-  "version": "1.0.0",
+  "name": "richard_wechat_bot",
+  "version": "0.0.1",
   "private": true,
   "description": "My own wechat project",
   "main": "server.js",
