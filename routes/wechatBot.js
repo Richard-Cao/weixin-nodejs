@@ -25,6 +25,15 @@ router.use('/', wechat(config).text(function(message, req, res, next) {
   if (gankKeywordIndex != -1){
     message.Content = gankKeywords[gankKeywordIndex];
     requestGank(message, res)
+  } else if (message.Content.startsWith('周免')) {
+    res.reply([
+      {
+        title: 'LOL本周周免英雄~',
+        description: '本周英雄联盟周免英雄大起底！这周应该怎么玩？',
+        picurl: 'http://7xr0xq.com1.z0.glb.clouddn.com/lol-logo.jpg',
+        url: 'http://lol.qq.com/weixin/free/'
+      }
+    ]);
   } else {
     requestRobot(message, res);
   }
@@ -212,6 +221,10 @@ var getGankKeywordIndex = function(keyword) {
   for (var i = 0; i < gankKeywords.length; i++) {
     if (keyword.toLowerCase() === gankKeywords[i].toLowerCase()){
       return i;
+    }
+    // 处理用户总喜欢发送“安卓”的情况
+    if (keyword === '安卓') {
+      return 1;
     }
   }
   return -1;
